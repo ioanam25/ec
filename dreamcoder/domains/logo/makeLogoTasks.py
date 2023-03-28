@@ -712,7 +712,7 @@ def montageTasks(tasks, prefix="", columns=None, testTrain=False):
     i = montage(arrays, columns=columns)
 
     import scipy.misc        
-    scipy.misc.imsave('/tmp/%smontage.png'%prefix, i)
+    # scipy.misc.imsave('/tmp/%smontage.png'%prefix, i)
     if testTrain:
         trainingTasks = arrays[:sum(t.mustTrain for t in tasks)]
         testingTasks = arrays[sum(t.mustTrain for t in tasks):]
@@ -721,27 +721,35 @@ def montageTasks(tasks, prefix="", columns=None, testTrain=False):
         arrays = trainingTasks + testingTasks
     else:
         random.shuffle(arrays)
-    scipy.misc.imsave('/tmp/%srandomMontage.png'%prefix, montage(arrays, columns=columns))
+    # scipy.misc.imsave('/tmp/%srandomMontage.png'%prefix, montage(arrays, columns=columns))
 
 def demoLogoTasks():
     import scipy.misc
     import numpy as np
+    import PIL
+    from PIL import Image
+
+    PATH = "/scratch/gpfs/ioanam/logos"
+    # os.system("mkdir  -p /ec/dataset/dreams_0")
+    # with open(PATH+"/ec/dataset/dreams_0/","w") as handle:
+    #     print("we have folder")
 
     g0 = Grammar.uniform(primitives, continuationType=turtle)
-    eprint("dreaming into /tmp/dreams_0...")
+    eprint("dreaming into " + PATH + "/ec/dataset/dreams_0...")
     N = 1000
+    # N = 1
     programs = [ p
                      for _ in range(N)
                      for p in [g0.sample(arrow(turtle,turtle),
                                          maximumDepth=20)]
                      if p is not None]
-    os.system("mkdir  -p /tmp/dreams_0")
+    # os.system("mkdir  -p /dataset/dreams_0")
     for n,p in enumerate(programs):
-        with open(f"/tmp/dreams_0/{n}.dream","w") as handle:
+        with open(PATH+"/ec/dataset/dreams_0/{n}.dream","w") as handle:
             handle.write(str(p))
     drawLogo(*programs, pretty=True, smoothPretty=False,
              resolution=512,
-             filenames=[f"/tmp/dreams_0/{n}_pretty.png"
+             filenames=[PATH+"/ec/dataset/dreams_0/{n}_pretty.png"
                         for n in range(len(programs)) ],
              timeout=1)
     
@@ -753,20 +761,22 @@ def demoLogoTasks():
     for n,t in enumerate(tasks):
         a = t.highresolution
         w = int(len(a)**0.5)
-        scipy.misc.imsave('/tmp/logo%d.png'%n, np.array([a[i:i+w]
-                                                         for i in range(0,len(a),w) ]))
+        img = Image.fromarray(np.array([a[i:i+w] for i in range(0,len(a),w) ])).convert('RGB')
+        img.save(PATH+'/ec/dataset/logo%d.png'%n)
+        # Image.save(PATH+'/ec/dataset/logo%d.png'%n, np.array([a[i:i+w] for i in range(0,len(a),w) ]))
         logo_safe_name = t.name.replace("=","_").replace(' ','_').replace('/','_').replace("-","_") + ".png"
         #os.system(f"convert /tmp/logo{n}.png -morphology Dilate Octagon /tmp/{logo_safe_name}")
-        os.system(f"convert /tmp/logo{n}.png -channel RGB -negate /tmp/{logo_safe_name}")
+        os.system(f"convert " + PATH + "/ec/dataset/logo{n}.png -channel RGB -negate /tmp/{logo_safe_name}")
     eprint(len(tasks),"tasks")
     eprint(sum(t.mustTrain for t in tasks),"need to be trained on")
 
     for t in dSLDemo():
         a = t.highresolution
         w = int(len(a)**0.5)
-        scipy.misc.imsave('/tmp/logoDemo%s.png'%t.name, np.array([a[i:i+w]
-                                                                  for i in range(0,len(a),w) ]))
-        os.system(f"convert /tmp/logoDemo{t.name}.png -morphology Dilate Octagon /tmp/logoDemo{t.name}_dilated.png")
+        img = Image.fromarray(np.array([a[i:i+w] for i in range(0,len(a),w) ])).convert('RGB')
+        img.save(PATH + '/ec/dataset/logoDemo%s.png'%t.name)
+        # scipy.misc.imsave(PATH + '/ec/dataset/logoDemo%s.png'%t.name, np.array([a[i:i+w] for i in range(0,len(a),w) ]))
+        os.system(f"convert " + PATH + "/ec/dataset/logoDemo{t.name}.png -morphology Dilate Octagon /tmp/logoDemo{t.name}_dilated.png")
 
     tasks = [t for t in tasks if t.mustTrain ]
     random.shuffle(tasks)
