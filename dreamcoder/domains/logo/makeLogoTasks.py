@@ -170,7 +170,7 @@ def manualLogoTask(name, expression, proto=False, needToTrain=False,
 
     attempts = 0
     while True:
-        [output, highresolution] = drawLogo(p, p, resolution=[28,128], cost=True)
+        [output, highresolution] = drawLogo(p, p, resolution=[28,224], cost=True)
         if output == "timeout" or highresolution == "timeout":
             attempts += 1
         else:
@@ -698,7 +698,7 @@ def manualLogoTasks():
 def montageTasks(tasks, prefix="", columns=None, testTrain=False):
     import numpy as np
     
-    w = 128
+    w = 224
     arrays = [t.highresolution for t in tasks]
     for a in arrays:
         assert len(a) == w*w
@@ -748,7 +748,7 @@ def demoLogoTasks():
         with open(PATH+"/ec/dataset/dreams_0/{n}.dream","w") as handle:
             handle.write(str(p))
     drawLogo(*programs, pretty=True, smoothPretty=False,
-             resolution=512,
+             resolution=224,
              filenames=[PATH+"/ec/dataset/dreams_0/{n}_pretty.png"
                         for n in range(len(programs)) ],
              timeout=1)
@@ -760,6 +760,7 @@ def demoLogoTasks():
     montageTasks(tasks,columns=16,testTrain=True)
     for n,t in enumerate(tasks):
         a = t.highresolution
+        # print("IMAGE SHAPE", a.shape)
         w = int(len(a)**0.5)
         img = Image.fromarray(np.array([a[i:i+w] for i in range(0,len(a),w) ])).convert('RGB')
         img.save(PATH+'/ec/dataset/logo%d.png'%n)
